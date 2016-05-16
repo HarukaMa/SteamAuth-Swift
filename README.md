@@ -6,4 +6,6 @@ Based on https://github.com/geel9/SteamAuth/commit/97e823f476a0df0f95477d0425a9e
 ## Still WIP
 I initially started porting this for myself, then decided I should open source it.
 
+**The current codebase is NOT tested, don't try to use it now**
+
 I'm doing this in my very limited spare time.
