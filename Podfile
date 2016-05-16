@@ -5,6 +5,5 @@ use_frameworks!
 
 target 'SteamAuth' do
 pod "SwiftyJSON"
-pod "Alamofire"
 end
 
