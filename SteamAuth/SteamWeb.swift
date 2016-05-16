@@ -15,19 +15,16 @@ public class SteamWeb {
      - parameter data: Name-data pairs.
      - Note: We try to use the same NSHTTPCookieStorage as we can only have a singleton of it. It seems we don't need separate CookieStorage anyway.
     */
-    public func mobileLoginRequest(url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], completionHandler: (response: String?) -> Void) {
-        request(url,
+    public static func mobileLoginRequest(url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:]) -> String? {
+        return request(url,
                 method: method,
                 data: data,
                 headers: headers,
-                referer: APIEndpoints.community + "/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
-                completionHandler: { (response) in
-                    completionHandler(response: response)
-        })
+                referer: APIEndpoints.community + "/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client"
+        )
     }
 
-    // Making all requests async
-    public func request(url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community, completionHandler: (response: String?) -> Void) {
+    public static func request(url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community) -> String? {
         var url = url
         let query = data.map { k, v in
             k.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())! + "=" + v.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
@@ -46,6 +43,7 @@ public class SteamWeb {
         request.allHTTPHeaderFields = headers
 
         let cookieStorage = NSHTTPCookieStorage.sharedHTTPCookieStorage()
+        cookieStorage.cookieAcceptPolicy = .Always
         let cookieHeaders = NSHTTPCookie.requestHeaderFieldsWithCookies(cookieStorage.cookies!)
         request.allHTTPHeaderFields = cookieHeaders
 
@@ -54,12 +52,22 @@ public class SteamWeb {
             request.setValue(String(query.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)), forHTTPHeaderField: "Content-Length")
         }
 
+        var result: String?
+        // We use semaphore to make the request sync.
+        let semaphore = dispatch_semaphore_create(0)
+
         NSURLSession.sharedSession().dataTaskWithRequest(request) { (data, response, error) in
             if error == nil {
-                completionHandler(response: String(data: data!, encoding: NSUTF8StringEncoding))
+                result = String(data: data!, encoding: NSUTF8StringEncoding)
             } else {
-                completionHandler(response: nil)
+                result = nil
             }
+            dispatch_semaphore_signal(semaphore)
         }
+
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+
+        return result
+
     }
 }
