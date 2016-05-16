@@ -7,13 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		45E96FBD51DF5A7DE1DB484B /* Pods_SteamAuth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5C5213254311FD1B3AAD75 /* Pods_SteamAuth.framework */; };
 		72AC87801CE9A2C800657612 /* SteamAuth.h in Headers */ = {isa = PBXBuildFile; fileRef = 72AC877F1CE9A2C800657612 /* SteamAuth.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2B5C5213254311FD1B3AAD75 /* Pods_SteamAuth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SteamAuth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		54F8798FE663C46C56108C75 /* Pods-SteamAuth.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SteamAuth.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SteamAuth/Pods-SteamAuth.debug.xcconfig"; sourceTree = "<group>"; };
 		72AC877C1CE9A2C800657612 /* SteamAuth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SteamAuth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		72AC877F1CE9A2C800657612 /* SteamAuth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SteamAuth.h; sourceTree = "<group>"; };
 		72AC87811CE9A2C800657612 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DC540FCAEE1E617915A29421 /* Pods-SteamAuth.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SteamAuth.release.xcconfig"; path = "Pods/Target Support Files/Pods-SteamAuth/Pods-SteamAuth.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -21,17 +25,29 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45E96FBD51DF5A7DE1DB484B /* Pods_SteamAuth.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		56E64AC16922422A21E506CE /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				54F8798FE663C46C56108C75 /* Pods-SteamAuth.debug.xcconfig */,
+				DC540FCAEE1E617915A29421 /* Pods-SteamAuth.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		72AC87721CE9A2C800657612 = {
 			isa = PBXGroup;
 			children = (
 				72AC877E1CE9A2C800657612 /* SteamAuth */,
 				72AC877D1CE9A2C800657612 /* Products */,
+				56E64AC16922422A21E506CE /* Pods */,
+				C77E3567A6A4A3E5794E583E /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -52,6 +68,14 @@
 			path = SteamAuth;
 			sourceTree = "<group>";
 		};
+		C77E3567A6A4A3E5794E583E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2B5C5213254311FD1B3AAD75 /* Pods_SteamAuth.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -70,10 +94,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 72AC87841CE9A2C800657612 /* Build configuration list for PBXNativeTarget "SteamAuth" */;
 			buildPhases = (
+				5ED517E3C21F5AFE0C342D65 /* 📦 Check Pods Manifest.lock */,
 				72AC87771CE9A2C800657612 /* Sources */,
 				72AC87781CE9A2C800657612 /* Frameworks */,
 				72AC87791CE9A2C800657612 /* Headers */,
 				72AC877A1CE9A2C800657612 /* Resources */,
+				E83B254780831EB977C602C0 /* 📦 Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -124,6 +150,39 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5ED517E3C21F5AFE0C342D65 /* 📦 Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "📦 Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		E83B254780831EB977C602C0 /* 📦 Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "📦 Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SteamAuth/Pods-SteamAuth-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		72AC87771CE9A2C800657612 /* Sources */ = {
@@ -226,6 +285,7 @@
 		};
 		72AC87851CE9A2C800657612 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 54F8798FE663C46C56108C75 /* Pods-SteamAuth.debug.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -244,6 +304,7 @@
 		};
 		72AC87861CE9A2C800657612 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DC540FCAEE1E617915A29421 /* Pods-SteamAuth.release.xcconfig */;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -279,6 +340,7 @@
 				72AC87861CE9A2C800657612 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
