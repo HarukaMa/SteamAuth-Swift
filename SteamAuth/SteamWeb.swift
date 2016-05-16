@@ -59,6 +59,8 @@ public class SteamWeb {
         NSURLSession.sharedSession().dataTaskWithRequest(request) { (data, response, error) in
             if error == nil {
                 result = String(data: data!, encoding: NSUTF8StringEncoding)
+                let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields((response as! NSHTTPURLResponse).allHeaderFields as! [String: String], forURL: response!.URL!)
+                cookieStorage.setCookies(cookies, forURL: response!.URL!, mainDocumentURL: nil)
             } else {
                 result = nil
             }
