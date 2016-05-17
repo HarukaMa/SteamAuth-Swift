@@ -35,6 +35,7 @@ public struct TimeAligner {
         let currentTime = Int(NSDate().timeIntervalSince1970)
 
         let request = NSMutableURLRequest(URL: NSURL(string: APIEndpoints.twoFactorTimeQuery)!)
+        request.HTTPMethod = "POST"
         request.HTTPBody = "steamid=0".dataUsingEncoding(NSUTF8StringEncoding)
 
         let semaphore = dispatch_semaphore_create(0)
@@ -54,6 +55,7 @@ public struct TimeAligner {
         let currentTime = Int(NSDate().timeIntervalSince1970)
 
         let request = NSMutableURLRequest(URL: NSURL(string: APIEndpoints.twoFactorTimeQuery)!)
+        request.HTTPMethod = "POST"
         request.HTTPBody = "steamid=0".dataUsingEncoding(NSUTF8StringEncoding)
 
         let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { data, response, error in

@@ -31,4 +31,11 @@ public class Confirmation {
         }
     }
 
+    convenience init(ID: String, key: String, description: String) {
+        self.init()
+        self.ID = ID
+        self.key = key
+        self.description = description
+    }
+
 }
