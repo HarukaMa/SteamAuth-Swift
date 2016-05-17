@@ -8,15 +8,27 @@
 
 /* Begin PBXBuildFile section */
 		45E96FBD51DF5A7DE1DB484B /* Pods_SteamAuth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5C5213254311FD1B3AAD75 /* Pods_SteamAuth.framework */; };
-		72AC87801CE9A2C800657612 /* SteamAuth.h in Headers */ = {isa = PBXBuildFile; fileRef = 72AC877F1CE9A2C800657612 /* SteamAuth.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		724743AB1CEA3F6800D9E2E0 /* SessionData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 724743AA1CEA3F6800D9E2E0 /* SessionData.swift */; };
+		724743AD1CEA427B00D9E2E0 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 724743AC1CEA427B00D9E2E0 /* Util.swift */; };
+		72AC87881CE9B0D000657612 /* SteamGuardAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72AC87871CE9B0D000657612 /* SteamGuardAccount.swift */; };
+		72AC878A1CE9CC8D00657612 /* SteamWeb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72AC87891CE9CC8D00657612 /* SteamWeb.swift */; };
+		72AC878C1CEA0FC600657612 /* APIEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72AC878B1CEA0FC600657612 /* APIEndpoints.swift */; };
+		72ECC4801CEAFCA900AD7CA1 /* TimeAligner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ECC47F1CEAFCA900AD7CA1 /* TimeAligner.swift */; };
+		72ECC4821CEB1A9400AD7CA1 /* Confirmation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72ECC4811CEB1A9400AD7CA1 /* Confirmation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2B5C5213254311FD1B3AAD75 /* Pods_SteamAuth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SteamAuth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		54F8798FE663C46C56108C75 /* Pods-SteamAuth.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SteamAuth.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SteamAuth/Pods-SteamAuth.debug.xcconfig"; sourceTree = "<group>"; };
+		724743AA1CEA3F6800D9E2E0 /* SessionData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SessionData.swift; sourceTree = "<group>"; };
+		724743AC1CEA427B00D9E2E0 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		72AC877C1CE9A2C800657612 /* SteamAuth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SteamAuth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		72AC877F1CE9A2C800657612 /* SteamAuth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SteamAuth.h; sourceTree = "<group>"; };
 		72AC87811CE9A2C800657612 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		72AC87871CE9B0D000657612 /* SteamGuardAccount.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SteamGuardAccount.swift; sourceTree = "<group>"; };
+		72AC87891CE9CC8D00657612 /* SteamWeb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SteamWeb.swift; sourceTree = "<group>"; };
+		72AC878B1CEA0FC600657612 /* APIEndpoints.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = APIEndpoints.swift; sourceTree = "<group>"; };
+		72ECC47F1CEAFCA900AD7CA1 /* TimeAligner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeAligner.swift; sourceTree = "<group>"; };
+		72ECC4811CEB1A9400AD7CA1 /* Confirmation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Confirmation.swift; sourceTree = "<group>"; };
 		DC540FCAEE1E617915A29421 /* Pods-SteamAuth.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SteamAuth.release.xcconfig"; path = "Pods/Target Support Files/Pods-SteamAuth/Pods-SteamAuth.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -62,8 +74,14 @@
 		72AC877E1CE9A2C800657612 /* SteamAuth */ = {
 			isa = PBXGroup;
 			children = (
-				72AC877F1CE9A2C800657612 /* SteamAuth.h */,
 				72AC87811CE9A2C800657612 /* Info.plist */,
+				72AC87871CE9B0D000657612 /* SteamGuardAccount.swift */,
+				72ECC4811CEB1A9400AD7CA1 /* Confirmation.swift */,
+				72ECC47F1CEAFCA900AD7CA1 /* TimeAligner.swift */,
+				72AC87891CE9CC8D00657612 /* SteamWeb.swift */,
+				724743AC1CEA427B00D9E2E0 /* Util.swift */,
+				724743AA1CEA3F6800D9E2E0 /* SessionData.swift */,
+				72AC878B1CEA0FC600657612 /* APIEndpoints.swift */,
 			);
 			path = SteamAuth;
 			sourceTree = "<group>";
@@ -83,7 +101,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				72AC87801CE9A2C800657612 /* SteamAuth.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -189,6 +206,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				724743AD1CEA427B00D9E2E0 /* Util.swift in Sources */,
+				72AC878C1CEA0FC600657612 /* APIEndpoints.swift in Sources */,
+				72AC87881CE9B0D000657612 /* SteamGuardAccount.swift in Sources */,
+				72ECC4821CEB1A9400AD7CA1 /* Confirmation.swift in Sources */,
+				724743AB1CEA3F6800D9E2E0 /* SessionData.swift in Sources */,
+				72AC878A1CE9CC8D00657612 /* SteamWeb.swift in Sources */,
+				72ECC4801CEAFCA900AD7CA1 /* TimeAligner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +311,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 54F8798FE663C46C56108C75 /* Pods-SteamAuth.debug.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -299,6 +324,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = im.mrx.SteamAuth;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -306,6 +332,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = DC540FCAEE1E617915A29421 /* Pods-SteamAuth.release.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;

@@ -3,7 +3,6 @@
 //  SteamAuth
 //
 //  Created by Haruka Ma on H28/05/17.
-//  Copyright © 平成28年 Haruka. All rights reserved.
 //
 
 import Foundation
