@@ -73,4 +73,45 @@ public class SteamWeb {
         return result
 
     }
+
+    public static func requestAsync(url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community, completionHandler: (response: String?) -> Void) {
+        var url = url
+        let query = data.map { k, v in
+            k.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())! + "=" + v.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
+            }.joinWithSeparator("&")
+
+        if method == "GET" {
+            url += (url.containsString("?") ? "&" : "?") + query
+        }
+
+        let request = NSMutableURLRequest(URL: NSURL(string: url)!)
+        request.HTTPMethod = method
+        request.setValue("text/javascript, text/html, application/xml, text/xml, */*", forHTTPHeaderField: "Accept")
+        request.setValue("Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30", forHTTPHeaderField: "User-Agent")
+        request.setValue(referer, forHTTPHeaderField: "Referer")
+
+        request.allHTTPHeaderFields = headers
+
+        let cookieStorage = NSHTTPCookieStorage.sharedHTTPCookieStorage()
+        cookieStorage.cookieAcceptPolicy = .Always
+        let cookieHeaders = NSHTTPCookie.requestHeaderFieldsWithCookies(cookieStorage.cookies!)
+        request.allHTTPHeaderFields = cookieHeaders
+
+        if method == "POST" {
+            request.setValue("application/x-www-form-urlencoded; charset=UTF-8", forHTTPHeaderField: "Content-Type")
+            request.setValue(String(query.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)), forHTTPHeaderField: "Content-Length")
+        }
+
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { (data, response, error) in
+            if error == nil {
+                completionHandler(response: String(data: data!, encoding: NSUTF8StringEncoding))
+                let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields((response as! NSHTTPURLResponse).allHeaderFields as! [String: String], forURL: response!.URL!)
+                cookieStorage.setCookies(cookies, forURL: response!.URL!, mainDocumentURL: nil)
+            } else {
+                completionHandler(response: nil)
+            }
+        }
+        task.resume()
+        
+    }
 }

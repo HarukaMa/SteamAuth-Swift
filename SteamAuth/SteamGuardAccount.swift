@@ -24,6 +24,10 @@ extension NSRegularExpression {
     }
 }
 
+protocol SteamGuardDelegate {
+    func steamGuard(account: SteamGuardAccount, didFetchConfirmations confirmations: [Confirmation])
+}
+
 public class SteamGuardAccount {
 
     // MARK: Properties
@@ -32,6 +36,8 @@ public class SteamGuardAccount {
         case NoDeviceID
         case InvalidToken
     }
+
+    var delegate: SteamGuardDelegate?
 
     public var sharedSecret: String = ""
     public var serialNumber: String = ""
@@ -157,6 +163,67 @@ public class SteamGuardAccount {
             ret.append(conf)
         }
         return ret
+    }
+
+    func fetchConfirmationsAsync() throws {
+        let url = generateConfirmationURL()
+
+        session.addCookies()
+
+        let response = SteamWeb.request(url, method: "GET")
+
+        /* Regex part */
+
+
+        let confIDRegex = try! NSRegularExpression(pattern: "data-confid=\"(\\d+)\"", options: [])
+        let confKeyRegex = try! NSRegularExpression(pattern: "data-key=\"(\\d+)\"", options: [])
+        let confDescRegex = try! NSRegularExpression(pattern: "<div>((Confirm|Trade with|Sell -) .+)</div>", options: [])
+
+
+        if response == nil || !(confIDRegex.hasMatch(response!) && confKeyRegex.hasMatch(response!) && confDescRegex.hasMatch(response!)) {
+            if response == nil || !response!.containsString("<div>Nothing to confirm</div>") {
+                throw SteamGuardError.InvalidToken
+            }
+            delegate?.steamGuard(self, didFetchConfirmations: [])
+        }
+
+        let confIDs = confIDRegex.matches(response!)
+        let confKeys = confKeyRegex.matches(response!)
+        let confDescs = confDescRegex.matches(response!)
+        var ret: [Confirmation] = []
+        for i in 0..<confIDs.count {
+            let confID = (response! as NSString).substringWithRange(confIDs[i].rangeAtIndex(1))
+            let confKey = (response! as NSString).substringWithRange(confKeys[i].rangeAtIndex(1))
+            let confDesc = (response! as NSString).substringWithRange(confDescs[i].rangeAtIndex(1))
+            let conf = Confirmation(ID: confID, key: confKey, description: confDesc)
+            ret.append(conf)
+        }
+        delegate?.steamGuard(self, didFetchConfirmations: ret)
+    }
+
+    func getConfirmationTradeOfferID(conf: Confirmation) -> Int {
+        let confDetails = getConfirmationDetails(conf)
+        if confDetails == nil || confDetails!["success"].boolValue == false { return -1 }
+
+        let tradeOfferIDRegex = try! NSRegularExpression(pattern: "<div class=\"tradeoffer\" id=\"tradeofferid_(\\d+)\" >", options: [])
+        if !tradeOfferIDRegex.hasMatch(confDetails!["html"].stringValue) { return -1 }
+        return Int((confDetails!["html"].stringValue as NSString).substringWithRange(tradeOfferIDRegex.matches(confDetails!["html"].stringValue)[0].rangeAtIndex(1)))!
+    }
+
+    private func getConfirmationDetails(conf: Confirmation) -> JSON? {
+        var url = APIEndpoints.community + "/mobileconf/details/" + conf.ID + "?"
+        let queryString = try! generateConfirmationQueryParams("details")
+        url += queryString
+
+        session.addCookies()
+        let referer = generateConfirmationURL() // It's not used in C# version
+
+        let response = SteamWeb.request(url, method: "GET")
+        if response == nil || response! == "" {
+            return nil
+        }
+
+        return JSON(response!)
     }
 
     func generateConfirmationURL(tag: String = "conf") -> String {
