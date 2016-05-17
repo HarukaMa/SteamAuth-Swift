@@ -56,7 +56,7 @@ public class SteamWeb {
         // We use semaphore to make the request sync.
         let semaphore = dispatch_semaphore_create(0)
 
-        NSURLSession.sharedSession().dataTaskWithRequest(request) { (data, response, error) in
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { (data, response, error) in
             if error == nil {
                 result = String(data: data!, encoding: NSUTF8StringEncoding)
                 let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields((response as! NSHTTPURLResponse).allHeaderFields as! [String: String], forURL: response!.URL!)
@@ -66,6 +66,7 @@ public class SteamWeb {
             }
             dispatch_semaphore_signal(semaphore)
         }
+        task.resume()
 
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
 
