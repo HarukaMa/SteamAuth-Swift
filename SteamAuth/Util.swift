@@ -9,20 +9,20 @@ import Foundation
 
 public class Util {
 
-    public static func newCookie(name name: String, value: String, path: String, domain: String, secure: Bool = false, httpOnly: Bool = false) -> NSHTTPCookie {
+    public static func newCookie(name: String, value: String, path: String, domain: String, secure: Bool = false, httpOnly: Bool = false) -> HTTPCookie {
         var properties = [
-            NSHTTPCookieName: name,
-            NSHTTPCookieValue: value,
-            NSHTTPCookiePath: path,
-            NSHTTPCookieDomain: domain
+            HTTPCookiePropertyKey.name: name,
+            HTTPCookiePropertyKey.value: value,
+            HTTPCookiePropertyKey.path: path,
+            HTTPCookiePropertyKey.domain: domain
         ]
         if secure {
-            properties[NSHTTPCookieSecure] = "1"
+            properties[HTTPCookiePropertyKey.secure] = "1"
         }
         if httpOnly {
-            properties["HttpOnly"] = "1"
+            properties["HttpOnly" as HTTPCookiePropertyKey] = "1"
         }
-        return NSHTTPCookie(properties: properties)!
+        return HTTPCookie(properties: properties)!
     }
 
 }

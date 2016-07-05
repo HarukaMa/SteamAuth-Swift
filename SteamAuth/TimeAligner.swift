@@ -20,45 +20,45 @@ public struct TimeAligner {
         if !aligned {
             alignTime()
         }
-        return Int(NSDate().timeIntervalSince1970) + timeDifference
+        return Int(Date().timeIntervalSince1970) + timeDifference
     }
 
-    public static func getSteamTimeAsync(completionHandler: (steamTime: Int) -> Void) {
+    public static func getSteamTimeAsync(_ completionHandler: (steamTime: Int) -> Void) {
         if !aligned {
             alignTimeAsync() { _ in
-                completionHandler(steamTime: Int(NSDate().timeIntervalSince1970) + timeDifference)
+                completionHandler(steamTime: Int(Date().timeIntervalSince1970) + timeDifference)
             }
         }
     }
 
     public static func alignTime() {
-        let currentTime = Int(NSDate().timeIntervalSince1970)
+        let currentTime = Int(Date().timeIntervalSince1970)
 
-        let request = NSMutableURLRequest(URL: NSURL(string: APIEndpoints.twoFactorTimeQuery)!)
-        request.HTTPMethod = "POST"
-        request.HTTPBody = "steamid=0".dataUsingEncoding(NSUTF8StringEncoding)
+        let request = NSMutableURLRequest(url: URL(string: APIEndpoints.twoFactorTimeQuery)!)
+        request.httpMethod = "POST"
+        request.httpBody = "steamid=0".data(using: String.Encoding.utf8)
 
-        let semaphore = dispatch_semaphore_create(0)
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { data, response, error in
+        let semaphore = DispatchSemaphore(value: 0)
+        let task = URLSession.shared().dataTask(with: request as URLRequest) { data, response, error in
             if error == nil {
                 let query = JSON(data: data!)
                 timeDifference = query["response"]["server_time"].intValue - currentTime
                 aligned = true
             }
-            dispatch_semaphore_signal(semaphore)
+            semaphore.signal()
         }
         task.resume()
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+        _ = semaphore.wait(timeout: DispatchTime.distantFuture)
     }
 
-    public static func alignTimeAsync(completionHandler: Void -> Void) {
-        let currentTime = Int(NSDate().timeIntervalSince1970)
+    public static func alignTimeAsync(_ completionHandler: (Void) -> Void) {
+        let currentTime = Int(Date().timeIntervalSince1970)
 
-        let request = NSMutableURLRequest(URL: NSURL(string: APIEndpoints.twoFactorTimeQuery)!)
-        request.HTTPMethod = "POST"
-        request.HTTPBody = "steamid=0".dataUsingEncoding(NSUTF8StringEncoding)
+        let request = NSMutableURLRequest(url: URL(string: APIEndpoints.twoFactorTimeQuery)!)
+        request.httpMethod = "POST"
+        request.httpBody = "steamid=0".data(using: String.Encoding.utf8)
 
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { data, response, error in
+        let task = URLSession.shared().dataTask(with: request as URLRequest) { data, response, error in
             if error == nil {
                 let query = JSON(data: data!)
                 timeDifference = query["response"]["server_time"].intValue - currentTime

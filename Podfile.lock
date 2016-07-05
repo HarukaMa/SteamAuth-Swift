@@ -2,11 +2,21 @@ PODS:
   - SwiftyJSON (2.3.2)
 
 DEPENDENCIES:
-  - SwiftyJSON
+  - SwiftyJSON (from `https://github.com/SwiftyJSON/SwiftyJSON.git`, branch `swift3`)
+
+EXTERNAL SOURCES:
+  SwiftyJSON:
+    :branch: swift3
+    :git: https://github.com/SwiftyJSON/SwiftyJSON.git
+
+CHECKOUT OPTIONS:
+  SwiftyJSON:
+    :commit: 1a9755949a652967dc2986cd7f4653496e556715
+    :git: https://github.com/SwiftyJSON/SwiftyJSON.git
 
 SPEC CHECKSUMS:
   SwiftyJSON: 04ccea08915aa0109039157c7974cf0298da292a
 
-PODFILE CHECKSUM: d7a4c575069e0aa5f2751d55da8a6b3640225242
+PODFILE CHECKSUM: ea6a24dd8bc0c66dfa5941b3fd92659ed9d50fe4
 
-COCOAPODS: 1.0.0.beta.8
+COCOAPODS: 1.0.0

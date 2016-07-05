@@ -4,6 +4,6 @@ platform :osx, '10.11'
 use_frameworks!
 
 target 'SteamAuth' do
-pod "SwiftyJSON"
+    pod 'SwiftyJSON', :git => 'https://github.com/SwiftyJSON/SwiftyJSON.git', :branch => 'swift3'
 end
 

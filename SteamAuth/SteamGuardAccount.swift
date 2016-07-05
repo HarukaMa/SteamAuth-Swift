@@ -10,31 +10,31 @@ import Foundation
 import SwiftyJSON
 import Security
 
-extension NSRegularExpression {
-    func hasMatch(string: String) -> Bool {
-        if self.firstMatchInString(string, options: [], range: NSMakeRange(0, string.lengthOfBytesUsingEncoding(NSUTF8StringEncoding))) != nil {
+extension RegularExpression {
+    func hasMatch(_ string: String) -> Bool {
+        if self.firstMatch(in: string, options: [], range: NSMakeRange(0, string.lengthOfBytes(using: String.Encoding.utf8))) != nil {
             return true
         } else {
             return false
         }
     }
 
-    func matches(string: String) -> [NSTextCheckingResult] {
-        return self.matchesInString(string, options: [], range: NSMakeRange(0, string.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)))
+    func matches(_ string: String) -> [TextCheckingResult] {
+        return self.matches(in: string, options: [], range: NSMakeRange(0, string.lengthOfBytes(using: String.Encoding.utf8)))
     }
 }
 
 protocol SteamGuardDelegate {
-    func steamGuard(account: SteamGuardAccount, didFetchConfirmations confirmations: [Confirmation])
+    func steamGuard(_ account: SteamGuardAccount, didFetchConfirmations confirmations: [Confirmation])
 }
 
 public class SteamGuardAccount {
 
     // MARK: Properties
 
-    enum SteamGuardError: ErrorType {
-        case NoDeviceID
-        case InvalidToken
+    enum SteamGuardError: ErrorProtocol {
+        case noDeviceID
+        case invalidToken
     }
 
     var delegate: SteamGuardDelegate?
@@ -61,7 +61,7 @@ public class SteamGuardAccount {
 
     // MARK: Functions
 
-    func deactivateAuthenticator(scheme: Int = 2) -> Bool {
+    func deactivateAuthenticator(_ scheme: Int = 2) -> Bool {
         let postData: [String: String] = [
             "steamid": String(session.steamID),
             "steamguard_scheme": String(scheme),
@@ -85,19 +85,19 @@ public class SteamGuardAccount {
         return generateSteamGuardCodeForTime(TimeAligner.getSteamTime())
     }
 
-    func generateSteamGuardCodeForTime(time: Int) -> String {
+    func generateSteamGuardCodeForTime(_ time: Int) -> String {
         if sharedSecret == "" {
             return ""
         }
 
-        let sharedSecretData = NSData(base64EncodedString: sharedSecret, options: .IgnoreUnknownCharacters)!
+        let sharedSecretData = Data(base64Encoded: sharedSecret)!
 
-        var timeArray = [UInt8](count: 8, repeatedValue: 0)
+        var timeArray = [UInt8](repeating: 0, count: 8)
 
         var time = time
         time /= 30
 
-        for i in (1...8).reverse() {
+        for i in (1...8).reversed() {
             timeArray[i - 1] = UInt8(truncatingBitPattern: time)
             time >>= 8
         }
@@ -105,14 +105,14 @@ public class SteamGuardAccount {
         var error: Unmanaged<CFError>?
         let transform = SecDigestTransformCreate(kSecDigestHMACSHA1, 0, &error)
         let inputData = timeArray.withUnsafeBufferPointer { buffer in
-            NSData(bytes: buffer.baseAddress, length: buffer.count)
+            Data(bytes: UnsafePointer<UInt8>(buffer.baseAddress!), count: buffer.count)
         }
 
         SecTransformSetAttribute(transform, kSecTransformInputAttributeName, inputData, &error)
         SecTransformSetAttribute(transform, kSecDigestHMACKeyAttribute, sharedSecretData, &error)
-        let hashedData = SecTransformExecute(transform, &error) as! NSData
-        var hashedArray = [UInt8](count: hashedData.length / sizeof(UInt8), repeatedValue: 0)
-        hashedData.getBytes(&hashedArray, length: hashedArray.count)
+        let hashedData = SecTransformExecute(transform, &error) as! Data
+        var hashedArray = [UInt8](repeating: 0, count: hashedData.count / sizeof(UInt8))
+        (hashedData as NSData).getBytes(&hashedArray, length: hashedArray.count)
 
         let b = Int(hashedArray[19] & 0xF)
         var codePoint: Int = Int(hashedArray[b] & 0x7F) << 24
@@ -120,13 +120,13 @@ public class SteamGuardAccount {
         codePoint |= Int(hashedArray[b + 2] & 0xFF) << 8
         codePoint |= Int(hashedArray[b + 3] & 0xFF)
 
-        var codeArray = [UInt8](count: 5, repeatedValue: 0)
+        var codeArray = [UInt8](repeating: 0, count: 5)
         for i in 0..<5 {
             codeArray[i] = steamGuardCodeTranslations[codePoint % steamGuardCodeTranslations.count]
             codePoint /= steamGuardCodeTranslations.count
         }
 
-        return String(bytes: codeArray, encoding: NSUTF8StringEncoding)!
+        return String(bytes: codeArray, encoding: String.Encoding.utf8)!
     }
 
     func fetchConfirmations() throws -> [Confirmation] {
@@ -139,14 +139,14 @@ public class SteamGuardAccount {
         /* Regex part */
 
 
-        let confIDRegex = try! NSRegularExpression(pattern: "data-confid=\"(\\d+)\"", options: [])
-        let confKeyRegex = try! NSRegularExpression(pattern: "data-key=\"(\\d+)\"", options: [])
-        let confDescRegex = try! NSRegularExpression(pattern: "<div>((Confirm|Trade with|Sell -) .+)</div>", options: [])
+        let confIDRegex = try! RegularExpression(pattern: "data-confid=\"(\\d+)\"", options: [])
+        let confKeyRegex = try! RegularExpression(pattern: "data-key=\"(\\d+)\"", options: [])
+        let confDescRegex = try! RegularExpression(pattern: "<div>((Confirm|Trade with|Sell -) .+)</div>", options: [])
 
 
         if response == nil || !(confIDRegex.hasMatch(response!) && confKeyRegex.hasMatch(response!) && confDescRegex.hasMatch(response!)) {
-            if response == nil || !response!.containsString("<div>Nothing to confirm</div>") {
-                throw SteamGuardError.InvalidToken
+            if response == nil || !response!.contains("<div>Nothing to confirm</div>") {
+                throw SteamGuardError.invalidToken
             }
             return []
         }
@@ -156,9 +156,9 @@ public class SteamGuardAccount {
         let confDescs = confDescRegex.matches(response!)
         var ret: [Confirmation] = []
         for i in 0..<confIDs.count {
-            let confID = (response! as NSString).substringWithRange(confIDs[i].rangeAtIndex(1))
-            let confKey = (response! as NSString).substringWithRange(confKeys[i].rangeAtIndex(1))
-            let confDesc = (response! as NSString).substringWithRange(confDescs[i].rangeAtIndex(1))
+            let confID = (response! as NSString).substring(with: confIDs[i].range(at: 1))
+            let confKey = (response! as NSString).substring(with: confKeys[i].range(at: 1))
+            let confDesc = (response! as NSString).substring(with: confDescs[i].range(at: 1))
             let conf = Confirmation(ID: confID, key: confKey, description: confDesc)
             ret.append(conf)
         }
@@ -175,14 +175,14 @@ public class SteamGuardAccount {
         /* Regex part */
 
 
-        let confIDRegex = try! NSRegularExpression(pattern: "data-confid=\"(\\d+)\"", options: [])
-        let confKeyRegex = try! NSRegularExpression(pattern: "data-key=\"(\\d+)\"", options: [])
-        let confDescRegex = try! NSRegularExpression(pattern: "<div>((Confirm|Trade with|Sell -) .+)</div>", options: [])
+        let confIDRegex = try! RegularExpression(pattern: "data-confid=\"(\\d+)\"", options: [])
+        let confKeyRegex = try! RegularExpression(pattern: "data-key=\"(\\d+)\"", options: [])
+        let confDescRegex = try! RegularExpression(pattern: "<div>((Confirm|Trade with|Sell -) .+)</div>", options: [])
 
 
         if response == nil || !(confIDRegex.hasMatch(response!) && confKeyRegex.hasMatch(response!) && confDescRegex.hasMatch(response!)) {
-            if response == nil || !response!.containsString("<div>Nothing to confirm</div>") {
-                throw SteamGuardError.InvalidToken
+            if response == nil || !response!.contains("<div>Nothing to confirm</div>") {
+                throw SteamGuardError.invalidToken
             }
             delegate?.steamGuard(self, didFetchConfirmations: [])
         }
@@ -192,31 +192,31 @@ public class SteamGuardAccount {
         let confDescs = confDescRegex.matches(response!)
         var ret: [Confirmation] = []
         for i in 0..<confIDs.count {
-            let confID = (response! as NSString).substringWithRange(confIDs[i].rangeAtIndex(1))
-            let confKey = (response! as NSString).substringWithRange(confKeys[i].rangeAtIndex(1))
-            let confDesc = (response! as NSString).substringWithRange(confDescs[i].rangeAtIndex(1))
+            let confID = (response! as NSString).substring(with: confIDs[i].range(at: 1))
+            let confKey = (response! as NSString).substring(with: confKeys[i].range(at: 1))
+            let confDesc = (response! as NSString).substring(with: confDescs[i].range(at: 1))
             let conf = Confirmation(ID: confID, key: confKey, description: confDesc)
             ret.append(conf)
         }
         delegate?.steamGuard(self, didFetchConfirmations: ret)
     }
 
-    func getConfirmationTradeOfferID(conf: Confirmation) -> Int {
+    func getConfirmationTradeOfferID(_ conf: Confirmation) -> Int {
         let confDetails = getConfirmationDetails(conf)
         if confDetails == nil || confDetails!["success"].boolValue == false { return -1 }
 
-        let tradeOfferIDRegex = try! NSRegularExpression(pattern: "<div class=\"tradeoffer\" id=\"tradeofferid_(\\d+)\" >", options: [])
+        let tradeOfferIDRegex = try! RegularExpression(pattern: "<div class=\"tradeoffer\" id=\"tradeofferid_(\\d+)\" >", options: [])
         if !tradeOfferIDRegex.hasMatch(confDetails!["html"].stringValue) { return -1 }
-        return Int((confDetails!["html"].stringValue as NSString).substringWithRange(tradeOfferIDRegex.matches(confDetails!["html"].stringValue)[0].rangeAtIndex(1)))!
+        return Int((confDetails!["html"].stringValue as NSString).substring(with: tradeOfferIDRegex.matches(confDetails!["html"].stringValue)[0].range(at: 1)))!
     }
 
-    private func getConfirmationDetails(conf: Confirmation) -> JSON? {
+    private func getConfirmationDetails(_ conf: Confirmation) -> JSON? {
         var url = APIEndpoints.community + "/mobileconf/details/" + conf.ID + "?"
         let queryString = try! generateConfirmationQueryParams("details")
         url += queryString
 
         session.addCookies()
-        let referer = generateConfirmationURL() // It's not used in C# version
+        /* let referer */ _ = generateConfirmationURL() // It's not used in C# version
 
         let response = SteamWeb.request(url, method: "GET")
         if response == nil || response! == "" {
@@ -226,31 +226,31 @@ public class SteamGuardAccount {
         return JSON(response!)
     }
 
-    func generateConfirmationURL(tag: String = "conf") -> String {
+    func generateConfirmationURL(_ tag: String = "conf") -> String {
         let endpoint = APIEndpoints.community + "/mobileconf/conf?"
         let queryString = try! generateConfirmationQueryParams(tag)
         return endpoint + queryString
     }
 
-    func generateConfirmationQueryParams(tag: String) throws -> String {
+    func generateConfirmationQueryParams(_ tag: String) throws -> String {
         if deviceID == "" {
-            throw SteamGuardError.NoDeviceID
+            throw SteamGuardError.noDeviceID
         }
         let time = TimeAligner.getSteamTime()
         return "p=" + deviceID + "&a=" + String(session.steamID) + "&k=" + generateConfirmationHashForTime(time, tag: tag) + "&t=" + String(time) + "&m=android&tag=" + tag
     }
 
-    private func generateConfirmationHashForTime(time: Int, tag: String) -> String {
+    private func generateConfirmationHashForTime(_ time: Int, tag: String) -> String {
         var time = time
         var n2 = 8
         if tag != "" {
-            if tag.lengthOfBytesUsingEncoding(NSUTF8StringEncoding) > 32 {
+            if tag.lengthOfBytes(using: String.Encoding.utf8) > 32 {
                 n2 = 8 + 32
             } else {
-                n2 = 8 + tag.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)
+                n2 = 8 + tag.lengthOfBytes(using: String.Encoding.utf8)
             }
         }
-        var array = [UInt8](count: n2, repeatedValue: 0)
+        var array = [UInt8](repeating: 0, count: n2)
         var n3 = 8
         while true {
             let n4 = n3 - 1
@@ -262,8 +262,8 @@ public class SteamGuardAccount {
             n3 = n4
         }
         if tag != "" {
-            var tagArray = [UInt8](count: tag.lengthOfBytesUsingEncoding(NSUTF8StringEncoding), repeatedValue: 0)
-            tag.dataUsingEncoding(NSUTF8StringEncoding)!.getBytes(&tagArray, length: tagArray.count)
+            var tagArray = [UInt8](repeating: 0, count: tag.lengthOfBytes(using: String.Encoding.utf8))
+            (tag.data(using: String.Encoding.utf8)! as NSData).getBytes(&tagArray, length: tagArray.count)
             for i in 0...n2 - 8 {
                 array[8 + i] = tagArray[i]
             }
@@ -271,14 +271,14 @@ public class SteamGuardAccount {
         var error: Unmanaged<CFError>?
         let transform = SecDigestTransformCreate(kSecDigestHMACSHA1, 0, &error)
         let inputData = array.withUnsafeBufferPointer { buffer in
-            NSData(bytes: buffer.baseAddress, length: buffer.count)
+            Data(bytes: UnsafePointer<UInt8>(buffer.baseAddress!), count: buffer.count)
         }
 
         SecTransformSetAttribute(transform, kSecTransformInputAttributeName, inputData, &error)
-        SecTransformSetAttribute(transform, kSecDigestHMACKeyAttribute, NSData(base64EncodedString: identitySecret, options: .IgnoreUnknownCharacters)!, &error)
-        let hashedData = SecTransformExecute(transform, &error) as! NSData
-        let encodedData = hashedData.base64EncodedStringWithOptions(.EncodingEndLineWithLineFeed)
-        let hash = encodedData.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
+        SecTransformSetAttribute(transform, kSecDigestHMACKeyAttribute, Data(base64Encoded: identitySecret)!, &error)
+        let hashedData = SecTransformExecute(transform, &error) as! Data
+        let encodedData = hashedData.base64EncodedString(.encodingEndLineWithLineFeed)
+        let hash = encodedData.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!
 
         return hash
     }

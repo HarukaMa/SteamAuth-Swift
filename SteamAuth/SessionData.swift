@@ -21,8 +21,8 @@ public class SessionData {
     // MARK - Functions
 
     public func addCookies() {
-        let cookieStorage = NSHTTPCookieStorage.sharedHTTPCookieStorage()
-        cookieStorage.cookieAcceptPolicy = .Always
+        let cookieStorage = HTTPCookieStorage.shared()
+        cookieStorage.cookieAcceptPolicy = .always
 
         cookieStorage.setCookie(Util.newCookie(
             name: "mobileClientVersion",

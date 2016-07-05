@@ -15,7 +15,7 @@ public class SteamWeb {
      - parameter data: Name-data pairs.
      - Note: We try to use the same NSHTTPCookieStorage as we can only have a singleton of it. It seems we don't need separate CookieStorage anyway.
     */
-    public static func mobileLoginRequest(url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:]) -> String? {
+    public static func mobileLoginRequest(_ url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:]) -> String? {
         return request(url,
                 method: method,
                 data: data,
@@ -24,89 +24,89 @@ public class SteamWeb {
         )
     }
 
-    public static func request(url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community) -> String? {
+    public static func request(_ url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community) -> String? {
         var url = url
         let query = data.map { k, v in
-            k.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())! + "=" + v.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
-            }.joinWithSeparator("&")
+            k.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)! + "=" + v.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!
+            }.joined(separator: "&")
 
         if method == "GET" {
-            url += (url.containsString("?") ? "&" : "?") + query
+            url += (url.contains("?") ? "&" : "?") + query
         }
 
-        let request = NSMutableURLRequest(URL: NSURL(string: url)!)
-        request.HTTPMethod = method
+        let request = NSMutableURLRequest(url: URL(string: url)!)
+        request.httpMethod = method
         request.setValue("text/javascript, text/html, application/xml, text/xml, */*", forHTTPHeaderField: "Accept")
         request.setValue("Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30", forHTTPHeaderField: "User-Agent")
         request.setValue(referer, forHTTPHeaderField: "Referer")
 
         request.allHTTPHeaderFields = headers
 
-        let cookieStorage = NSHTTPCookieStorage.sharedHTTPCookieStorage()
-        cookieStorage.cookieAcceptPolicy = .Always
-        let cookieHeaders = NSHTTPCookie.requestHeaderFieldsWithCookies(cookieStorage.cookies!)
+        let cookieStorage = HTTPCookieStorage.shared()
+        cookieStorage.cookieAcceptPolicy = .always
+        let cookieHeaders = HTTPCookie.requestHeaderFields(with: cookieStorage.cookies!)
         request.allHTTPHeaderFields = cookieHeaders
 
         if method == "POST" {
             request.setValue("application/x-www-form-urlencoded; charset=UTF-8", forHTTPHeaderField: "Content-Type")
-            request.setValue(String(query.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)), forHTTPHeaderField: "Content-Length")
+            request.setValue(String(query.lengthOfBytes(using: String.Encoding.utf8)), forHTTPHeaderField: "Content-Length")
         }
 
         var result: String?
-        // We use semaphore to make the request sync.
-        let semaphore = dispatch_semaphore_create(0)
+        // We use semaphore to make sync request.
+        let semaphore = DispatchSemaphore(value: 0)
 
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { (data, response, error) in
+        let task = URLSession.shared().dataTask(with: request as URLRequest) { (data, response, error) in
             if error == nil {
-                result = String(data: data!, encoding: NSUTF8StringEncoding)
-                let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields((response as! NSHTTPURLResponse).allHeaderFields as! [String: String], forURL: response!.URL!)
-                cookieStorage.setCookies(cookies, forURL: response!.URL!, mainDocumentURL: nil)
+                result = String(data: data!, encoding: String.Encoding.utf8)
+                let cookies = HTTPCookie.cookies(withResponseHeaderFields: (response as! HTTPURLResponse).allHeaderFields as! [String: String], for: response!.url!)
+                cookieStorage.setCookies(cookies, for: response!.url!, mainDocumentURL: nil)
             } else {
                 result = nil
             }
-            dispatch_semaphore_signal(semaphore)
+            semaphore.signal()
         }
         task.resume()
 
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+        _ = semaphore.wait(timeout: DispatchTime.distantFuture)
 
         return result
 
     }
 
-    public static func requestAsync(url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community, completionHandler: (response: String?) -> Void) {
+    public static func requestAsync(_ url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community, completionHandler: (response: String?) -> Void) {
         var url = url
         let query = data.map { k, v in
-            k.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())! + "=" + v.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!
-            }.joinWithSeparator("&")
+            k.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)! + "=" + v.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!
+            }.joined(separator: "&")
 
         if method == "GET" {
-            url += (url.containsString("?") ? "&" : "?") + query
+            url += (url.contains("?") ? "&" : "?") + query
         }
 
-        let request = NSMutableURLRequest(URL: NSURL(string: url)!)
-        request.HTTPMethod = method
+        let request = NSMutableURLRequest(url: URL(string: url)!)
+        request.httpMethod = method
         request.setValue("text/javascript, text/html, application/xml, text/xml, */*", forHTTPHeaderField: "Accept")
         request.setValue("Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30", forHTTPHeaderField: "User-Agent")
         request.setValue(referer, forHTTPHeaderField: "Referer")
 
         request.allHTTPHeaderFields = headers
 
-        let cookieStorage = NSHTTPCookieStorage.sharedHTTPCookieStorage()
-        cookieStorage.cookieAcceptPolicy = .Always
-        let cookieHeaders = NSHTTPCookie.requestHeaderFieldsWithCookies(cookieStorage.cookies!)
+        let cookieStorage = HTTPCookieStorage.shared()
+        cookieStorage.cookieAcceptPolicy = .always
+        let cookieHeaders = HTTPCookie.requestHeaderFields(with: cookieStorage.cookies!)
         request.allHTTPHeaderFields = cookieHeaders
 
         if method == "POST" {
             request.setValue("application/x-www-form-urlencoded; charset=UTF-8", forHTTPHeaderField: "Content-Type")
-            request.setValue(String(query.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)), forHTTPHeaderField: "Content-Length")
+            request.setValue(String(query.lengthOfBytes(using: String.Encoding.utf8)), forHTTPHeaderField: "Content-Length")
         }
 
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { (data, response, error) in
+        let task = URLSession.shared().dataTask(with: request as URLRequest) { (data, response, error) in
             if error == nil {
-                completionHandler(response: String(data: data!, encoding: NSUTF8StringEncoding))
-                let cookies = NSHTTPCookie.cookiesWithResponseHeaderFields((response as! NSHTTPURLResponse).allHeaderFields as! [String: String], forURL: response!.URL!)
-                cookieStorage.setCookies(cookies, forURL: response!.URL!, mainDocumentURL: nil)
+                completionHandler(response: String(data: data!, encoding: String.Encoding.utf8))
+                let cookies = HTTPCookie.cookies(withResponseHeaderFields: (response as! HTTPURLResponse).allHeaderFields as! [String: String], for: response!.url!)
+                cookieStorage.setCookies(cookies, for: response!.url!, mainDocumentURL: nil)
             } else {
                 completionHandler(response: nil)
             }
