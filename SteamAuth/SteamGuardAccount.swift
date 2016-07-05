@@ -51,7 +51,7 @@ public class SteamGuardAccount {
     public var status: Int = 0
     public var deviceID: String = ""
 
-    /** Whether the authenticator has actually been applies to the account.
+    /** Whether the authenticator has actually been applied to the account.
     */
     public var fullyEnrolled: Bool = false
 
@@ -210,6 +210,14 @@ public class SteamGuardAccount {
         return Int((confDetails!["html"].stringValue as NSString).substring(with: tradeOfferIDRegex.matches(confDetails!["html"].stringValue)[0].range(at: 1)))!
     }
 
+    func AcceptConfirmation(_ conf: Confirmation) -> Bool {
+        return sendConfirmationAjax(conf, op: "allow")
+    }
+
+    func DenyConfirmation(_ conf: Confirmation) -> Bool {
+        return sendConfirmationAjax(conf, op: "cancel")
+    }
+
     private func getConfirmationDetails(_ conf: Confirmation) -> JSON? {
         var url = APIEndpoints.community + "/mobileconf/details/" + conf.ID + "?"
         let queryString = try! generateConfirmationQueryParams("details")
@@ -224,6 +232,29 @@ public class SteamGuardAccount {
         }
 
         return JSON(response!)
+    }
+
+    private func sendConfirmationAjax(_ conf: Confirmation, op: String) -> Bool {
+        var url = APIEndpoints.community + "/mobileconf/ajaxop";
+        var queryString = "?op=" + op + "&";
+        do {
+            try queryString += generateConfirmationQueryParams(op);
+        } catch {
+
+        }
+        queryString += "&cid=" + conf.ID + "&ck=" + conf.key;
+        url += queryString;
+
+        session.addCookies()
+        /* let referer */ _ = generateConfirmationURL();
+
+        let response = SteamWeb.request(url, method: "GET");
+        if response == nil {
+            return false
+        }
+
+        let confResponse = JSON(data: response!.data(using: .utf8)!)
+        return confResponse["success"].boolValue;
     }
 
     func generateConfirmationURL(_ tag: String = "conf") -> String {
