@@ -51,8 +51,7 @@ public class SteamGuardAccount {
     public var status: Int = 0
     public var deviceID: String = ""
 
-    /** Whether the authenticator has actually been applied to the account.
-    */
+    /// Whether the authenticator has actually been applied to the account.
     public var fullyEnrolled: Bool = false
 
     public var session: SessionData = SessionData()
@@ -216,6 +215,31 @@ public class SteamGuardAccount {
 
     func DenyConfirmation(_ conf: Confirmation) -> Bool {
         return sendConfirmationAjax(conf, op: "cancel")
+    }
+
+    /// Refreshes the Steam session. Necessary to perform confirmations if your session has expired or changed.
+    func refreshSession() -> Bool {
+        let url = APIEndpoints.mobileAuthGetWGToken;
+        let postData = ["access_token": session.OAuthToken]
+
+        var response: String? = nil;
+        response = SteamWeb.request(url, method: "POST", data: postData);
+
+        if response == nil {
+            return false
+        }
+
+        var refreshResponse = JSON(data: response!.data(using: .utf8)!);
+        if !refreshResponse["response"].exists() || refreshResponse["response"]["token"].stringValue == "" {
+            return false
+        }
+
+        let token = String(session.steamID) + "%7C%7C" + refreshResponse["response"]["token"].stringValue
+        let tokenSecure = String(session.steamID) + "%7C%7C" + refreshResponse["response"]["token_secure"].stringValue;
+
+        session.steamLogin = token;
+        session.steamLoginSecure = tokenSecure;
+        return true;
     }
 
     private func getConfirmationDetails(_ conf: Confirmation) -> JSON? {
