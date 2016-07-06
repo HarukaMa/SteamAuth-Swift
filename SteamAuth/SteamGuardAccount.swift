@@ -24,11 +24,6 @@ extension RegularExpression {
     }
 }
 
-protocol SteamGuardDelegate {
-    func steamGuard(_ account: SteamGuardAccount, didFetchConfirmations confirmations: [Confirmation])
-    func steamGuard(_ account: SteamGuardAccount, didRefreshSession result: Bool)
-}
-
 public class SteamGuardAccount {
 
     // MARK: Properties
@@ -37,8 +32,6 @@ public class SteamGuardAccount {
         case noDeviceID
         case invalidToken
     }
-
-    var delegate: SteamGuardDelegate?
 
     public var sharedSecret: String = ""
     public var serialNumber: String = ""
@@ -165,7 +158,7 @@ public class SteamGuardAccount {
         return ret
     }
 
-    func fetchConfirmationsAsync() throws {
+    func fetchConfirmationsAsync(completionHandler: ([Confirmation]) -> Void) throws {
         let url = generateConfirmationURL()
 
         session.addCookies()
@@ -185,7 +178,7 @@ public class SteamGuardAccount {
                     if response == nil || !response!.contains("<div>Nothing to confirm</div>") {
                         throw SteamGuardError.invalidToken
                     }
-                    self.delegate?.steamGuard(self, didFetchConfirmations: [])
+                    completionHandler([])
                 }
 
                 let confIDs = confIDRegex.matches(response!)
@@ -199,7 +192,7 @@ public class SteamGuardAccount {
                     let conf = Confirmation(ID: confID, key: confKey, description: confDesc)
                     ret.append(conf)
                 }
-                self.delegate?.steamGuard(self, didFetchConfirmations: ret)
+                completionHandler(ret)
             }
         } catch let error {
             throw error
@@ -249,19 +242,19 @@ public class SteamGuardAccount {
     }
 
     /// Refreshes the Steam session. Necessary to perform confirmations if your session has expired or changed.
-    func refreshSessionAsync() {
+    func refreshSessionAsync(completionHandler: (Bool) -> Void) {
         let url = APIEndpoints.mobileAuthGetWGToken;
         let postData = ["access_token": session.OAuthToken]
 
         SteamWeb.requestAsync(url, method: "POST", data: postData) { response in
 
             if response == nil {
-                self.delegate?.steamGuard(self, didRefreshSession: false)
+                completionHandler(false)
             }
 
             var refreshResponse = JSON(data: response!.data(using: .utf8)!)
             if !refreshResponse["response"].exists() || refreshResponse["response"]["token"].stringValue == "" {
-                self.delegate?.steamGuard(self, didRefreshSession: false)
+                completionHandler(false)
             }
 
             let token = String(self.session.steamID) + "%7C%7C" + refreshResponse["response"]["token"].stringValue
@@ -269,7 +262,7 @@ public class SteamGuardAccount {
 
             self.session.steamLogin = token
             self.session.steamLoginSecure = tokenSecure
-            self.delegate?.steamGuard(self, didRefreshSession: true)
+            completionHandler(true)
         }
     }
 
