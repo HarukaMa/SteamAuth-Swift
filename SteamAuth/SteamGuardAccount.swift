@@ -26,6 +26,7 @@ extension RegularExpression {
 
 protocol SteamGuardDelegate {
     func steamGuard(_ account: SteamGuardAccount, didFetchConfirmations confirmations: [Confirmation])
+    func steamGuard(_ account: SteamGuardAccount, didRefreshSession result: Bool)
 }
 
 public class SteamGuardAccount {
@@ -169,35 +170,40 @@ public class SteamGuardAccount {
 
         session.addCookies()
 
-        let response = SteamWeb.request(url, method: "GET")
+        do {
+            try SteamWeb.requestAsync(url, method: "GET") { response in
 
-        /* Regex part */
-
-
-        let confIDRegex = try! RegularExpression(pattern: "data-confid=\"(\\d+)\"", options: [])
-        let confKeyRegex = try! RegularExpression(pattern: "data-key=\"(\\d+)\"", options: [])
-        let confDescRegex = try! RegularExpression(pattern: "<div>((Confirm|Trade with|Sell -) .+)</div>", options: [])
+                /* Regex part */
 
 
-        if response == nil || !(confIDRegex.hasMatch(response!) && confKeyRegex.hasMatch(response!) && confDescRegex.hasMatch(response!)) {
-            if response == nil || !response!.contains("<div>Nothing to confirm</div>") {
-                throw SteamGuardError.invalidToken
+                let confIDRegex = try! RegularExpression(pattern: "data-confid=\"(\\d+)\"", options: [])
+                let confKeyRegex = try! RegularExpression(pattern: "data-key=\"(\\d+)\"", options: [])
+                let confDescRegex = try! RegularExpression(pattern: "<div>((Confirm|Trade with|Sell -) .+)</div>", options: [])
+
+
+                if response == nil || !(confIDRegex.hasMatch(response!) && confKeyRegex.hasMatch(response!) && confDescRegex.hasMatch(response!)) {
+                    if response == nil || !response!.contains("<div>Nothing to confirm</div>") {
+                        throw SteamGuardError.invalidToken
+                    }
+                    self.delegate?.steamGuard(self, didFetchConfirmations: [])
+                }
+
+                let confIDs = confIDRegex.matches(response!)
+                let confKeys = confKeyRegex.matches(response!)
+                let confDescs = confDescRegex.matches(response!)
+                var ret: [Confirmation] = []
+                for i in 0..<confIDs.count {
+                    let confID = (response! as NSString).substring(with: confIDs[i].range(at: 1))
+                    let confKey = (response! as NSString).substring(with: confKeys[i].range(at: 1))
+                    let confDesc = (response! as NSString).substring(with: confDescs[i].range(at: 1))
+                    let conf = Confirmation(ID: confID, key: confKey, description: confDesc)
+                    ret.append(conf)
+                }
+                self.delegate?.steamGuard(self, didFetchConfirmations: ret)
             }
-            delegate?.steamGuard(self, didFetchConfirmations: [])
+        } catch let error {
+            throw error
         }
-
-        let confIDs = confIDRegex.matches(response!)
-        let confKeys = confKeyRegex.matches(response!)
-        let confDescs = confDescRegex.matches(response!)
-        var ret: [Confirmation] = []
-        for i in 0..<confIDs.count {
-            let confID = (response! as NSString).substring(with: confIDs[i].range(at: 1))
-            let confKey = (response! as NSString).substring(with: confKeys[i].range(at: 1))
-            let confDesc = (response! as NSString).substring(with: confDescs[i].range(at: 1))
-            let conf = Confirmation(ID: confID, key: confKey, description: confDesc)
-            ret.append(conf)
-        }
-        delegate?.steamGuard(self, didFetchConfirmations: ret)
     }
 
     func getConfirmationTradeOfferID(_ conf: Confirmation) -> Int {
@@ -240,6 +246,31 @@ public class SteamGuardAccount {
         session.steamLogin = token;
         session.steamLoginSecure = tokenSecure;
         return true;
+    }
+
+    /// Refreshes the Steam session. Necessary to perform confirmations if your session has expired or changed.
+    func refreshSessionAsync() {
+        let url = APIEndpoints.mobileAuthGetWGToken;
+        let postData = ["access_token": session.OAuthToken]
+
+        SteamWeb.requestAsync(url, method: "POST", data: postData) { response in
+
+            if response == nil {
+                self.delegate?.steamGuard(self, didRefreshSession: false)
+            }
+
+            var refreshResponse = JSON(data: response!.data(using: .utf8)!)
+            if !refreshResponse["response"].exists() || refreshResponse["response"]["token"].stringValue == "" {
+                self.delegate?.steamGuard(self, didRefreshSession: false)
+            }
+
+            let token = String(self.session.steamID) + "%7C%7C" + refreshResponse["response"]["token"].stringValue
+            let tokenSecure = String(self.session.steamID) + "%7C%7C" + refreshResponse["response"]["token_secure"].stringValue
+
+            self.session.steamLogin = token
+            self.session.steamLoginSecure = tokenSecure
+            self.delegate?.steamGuard(self, didRefreshSession: true)
+        }
     }
 
     private func getConfirmationDetails(_ conf: Confirmation) -> JSON? {

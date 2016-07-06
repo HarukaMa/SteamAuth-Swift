@@ -24,7 +24,7 @@
 		724743AC1CEA427B00D9E2E0 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		72AC877C1CE9A2C800657612 /* SteamAuth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SteamAuth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		72AC87811CE9A2C800657612 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		72AC87871CE9B0D000657612 /* SteamGuardAccount.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SteamGuardAccount.swift; sourceTree = "<group>"; };
+		72AC87871CE9B0D000657612 /* SteamGuardAccount.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SteamGuardAccount.swift; sourceTree = "<group>"; wrapsLines = 1; };
 		72AC87891CE9CC8D00657612 /* SteamWeb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SteamWeb.swift; sourceTree = "<group>"; };
 		72AC878B1CEA0FC600657612 /* APIEndpoints.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = APIEndpoints.swift; sourceTree = "<group>"; };
 		72ECC47F1CEAFCA900AD7CA1 /* TimeAligner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeAligner.swift; sourceTree = "<group>"; };

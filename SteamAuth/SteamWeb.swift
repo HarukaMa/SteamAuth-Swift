@@ -74,7 +74,7 @@ public class SteamWeb {
 
     }
 
-    public static func requestAsync(_ url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community, completionHandler: (response: String?) -> Void) {
+    public static func requestAsync(_ url: String, method: String, data: [String: String] = [:], headers: [String: String] = [:], referer: String = APIEndpoints.community, completionHandler: (response: String?) throws -> Void) rethrows {
         var url = url
         let query = data.map { k, v in
             k.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)! + "=" + v.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!
@@ -104,11 +104,11 @@ public class SteamWeb {
 
         let task = URLSession.shared().dataTask(with: request as URLRequest) { (data, response, error) in
             if error == nil {
-                completionHandler(response: String(data: data!, encoding: String.Encoding.utf8))
+                try! completionHandler(response: String(data: data!, encoding: String.Encoding.utf8))
                 let cookies = HTTPCookie.cookies(withResponseHeaderFields: (response as! HTTPURLResponse).allHeaderFields as! [String: String], for: response!.url!)
                 cookieStorage.setCookies(cookies, for: response!.url!, mainDocumentURL: nil)
             } else {
-                completionHandler(response: nil)
+                try! completionHandler(response: nil)
             }
         }
         task.resume()
